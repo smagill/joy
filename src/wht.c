@@ -46,6 +46,7 @@
 #include <stdlib.h>
 #include "wht.h"     
 #include "err.h"
+#include "joy_mem.h"
 
 /**
  * \brief Initialize the memory of WHT struct.
@@ -59,7 +60,7 @@ __inline void wht_init (struct wht **wht_handle) {
         wht_delete(wht_handle);
     }
 
-    *wht_handle = malloc(sizeof(struct wht));
+    *wht_handle = joy_malloc(sizeof(struct wht));
     if (*wht_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -205,7 +206,7 @@ void wht_delete (struct wht **wht_handle) {
     }
 
     /* Free the memory and set to NULL */
-    free(wht);
+    joy_free(wht);
     *wht_handle = NULL;
 }
 

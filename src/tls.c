@@ -64,6 +64,7 @@
 #include "pkt.h"
 #include "utils.h"
 #include "err.h"
+#include "joy_mem.h"
 
 /*
  * The maxiumum allowed length of a serial number is 20 octets
@@ -104,7 +105,7 @@ void tls_init (struct tls **tls_handle) {
         tls_delete(tls_handle);
     }
 
-    *tls_handle = malloc(sizeof(struct tls));
+    *tls_handle = joy_malloc(sizeof(struct tls));
     if (*tls_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -129,19 +130,19 @@ void tls_delete (struct tls **tls_handle) {
     }
 
     if (r->sni) {
-        free(r->sni);
+        joy_free(r->sni);
     }
     if (r->handshake_buffer) {
-        free(r->handshake_buffer);
+        joy_free(r->handshake_buffer);
     }
     for (i=0; i<r->num_extensions; i++) {
         if (r->extensions[i].data) {
-            free(r->extensions[i].data);
+            joy_free(r->extensions[i].data);
         }
     }
     for (i=0; i<r->num_server_extensions; i++) {
         if (r->server_extensions[i].data) {
-            free(r->server_extensions[i].data);
+            joy_free(r->server_extensions[i].data);
         }
     }
 
@@ -150,11 +151,11 @@ void tls_delete (struct tls **tls_handle) {
 
         if (cert->signature) {
             /* Free the signature */
-            free(cert->signature);
+            joy_free(cert->signature);
         }
         if (cert->serial_number) {
             /* Free the serial number */
-            free(cert->serial_number);
+            joy_free(cert->serial_number);
         }
         for (j = 0; j < cert->num_issuer_items; j++) {
             /*
@@ -164,7 +165,7 @@ void tls_delete (struct tls **tls_handle) {
 
             if (entry->data) {
                 /* Free the entry data */
-	            free(entry->data);
+	            joy_free(entry->data);
             }
         }
         for (j = 0; j < cert->num_subject_items; j++) {
@@ -175,7 +176,7 @@ void tls_delete (struct tls **tls_handle) {
 
             if (entry->data) {
                 /* Free the entry data */
-	            free(entry->data);
+	            joy_free(entry->data);
             }
         }
         for (j = 0; j < cert->num_extension_items; j++) {
@@ -186,19 +187,19 @@ void tls_delete (struct tls **tls_handle) {
 
             if (entry->data) {
                 /* Free the entry data */
-	            free(entry->data);
+	            joy_free(entry->data);
             }
         }
         if (cert->validity_not_before) {
-            free(cert->validity_not_before);
+            joy_free(cert->validity_not_before);
         }
         if (cert->validity_not_after) {
-            free(cert->validity_not_after);
+            joy_free(cert->validity_not_after);
         }
     }
 
     /* Free the memory and set to NULL */
-    free(r);
+    joy_free(r);
     *tls_handle = NULL;
 }
 
@@ -386,16 +387,16 @@ static void tls_client_hello_get_extensions (const unsigned char *y,
     while (len > 0) {
         if (raw_to_uint16(y) == 0) {
             if (r->sni != NULL) {
-                free(r->sni);
+                joy_free(r->sni);
             }
             r->sni_length = raw_to_uint16(y+7)+1;
-            r->sni = malloc(r->sni_length);
+            r->sni = joy_malloc(r->sni_length);
             memset(r->sni, '\0', r->sni_length);
             memcpy(r->sni, y+9, r->sni_length-1);
 
 	    r->extensions[i].type = raw_to_uint16(y);
 	    r->extensions[i].length = raw_to_uint16(y+2);
-	    r->extensions[i].data = malloc(r->extensions[i].length);
+	    r->extensions[i].data = joy_malloc(r->extensions[i].length);
 	    memcpy(r->extensions[i].data, y+4, r->extensions[i].length);  
 	    r->num_extensions += 1;
 	    i += 1;
@@ -408,12 +409,12 @@ static void tls_client_hello_get_extensions (const unsigned char *y,
         }
 
         if (r->extensions[i].data != NULL) {
-            free(r->extensions[i].data);
+            joy_free(r->extensions[i].data);
         }
         r->extensions[i].type = raw_to_uint16(y);
         r->extensions[i].length = raw_to_uint16(y+2);
         // should check if length is reasonable?
-        r->extensions[i].data = malloc(r->extensions[i].length);
+        r->extensions[i].data = joy_malloc(r->extensions[i].length);
         memcpy(r->extensions[i].data, y+4, r->extensions[i].length);
   
         r->num_extensions += 1;
@@ -492,7 +493,7 @@ static int tls_x509_get_validity_period(X509 *cert,
 
         if (not_before_data_len > 0) {
             /* Prepare the record */
-            record->validity_not_before = calloc(not_before_data_len + 1, sizeof(unsigned char));
+            record->validity_not_before = joy_calloc(not_before_data_len + 1, sizeof(unsigned char));
             record->validity_not_before_length = not_before_data_len;
 
             /* Copy notBefore into record */
@@ -523,7 +524,7 @@ static int tls_x509_get_validity_period(X509 *cert,
 
         if (not_after_data_len > 0) {
             /* Prepare the record */
-            record->validity_not_after = calloc(not_after_data_len + 1, sizeof(unsigned char));
+            record->validity_not_after = joy_calloc(not_after_data_len + 1, sizeof(unsigned char));
             record->validity_not_after_length = not_after_data_len;
             /* Copy notAfter into record */
             memcpy(record->validity_not_after, bio_mem_ptr->data,
@@ -627,7 +628,7 @@ static int tls_x509_get_subject(X509 *cert,
          * Prepare the subject entry in the certificate record.
          * Give extra byte for manual null-termination.
          */
-        cert_record_entry->data = calloc(entry_data_len + 1, sizeof(unsigned char));
+        cert_record_entry->data = joy_calloc(entry_data_len + 1, sizeof(unsigned char));
         cert_record_entry->data_length = entry_data_len;
 
         if (nid == NID_undef) {
@@ -737,7 +738,7 @@ static int tls_x509_get_issuer(X509 *cert,
          * Prepare the issuer entry in the certificate record.
          * Give extra byte for manual null-termination.
          */
-        cert_record_entry->data = calloc(entry_data_len + 1, sizeof(unsigned char));
+        cert_record_entry->data = joy_calloc(entry_data_len + 1, sizeof(unsigned char));
         cert_record_entry->data_length = entry_data_len;
 
         if (nid == NID_undef) {
@@ -813,7 +814,7 @@ static int tls_x509_get_serial(X509 *cert,
     }
 
     if (serial_data) {
-        record->serial_number = malloc(serial_data_length);
+        record->serial_number = joy_malloc(serial_data_length);
         memcpy(record->serial_number, serial_data, serial_data_length);
         record->serial_number_length = (uint8_t)serial_data_length;
     }
@@ -945,7 +946,7 @@ static int tls_x509_get_signature(X509 *cert,
         record->signature_key_size = sig_length << 3;
     }
 
-    record->signature = malloc(sig_length);
+    record->signature = joy_malloc(sig_length);
     memcpy(record->signature, sig_str, sig_length);
     record->signature_length = sig_length;
 
@@ -1055,7 +1056,7 @@ static int tls_x509_get_extensions(X509 *cert,
         /*
          * Prepare the extension entry in the certificate record.
          */
-        cert_record_entry->data = calloc(ext_data_len + 1, sizeof(unsigned char));
+        cert_record_entry->data = joy_calloc(ext_data_len + 1, sizeof(unsigned char));
         cert_record_entry->data_length = ext_data_len;
 
         if (nid == NID_undef) {
@@ -1354,7 +1355,7 @@ static void tls_server_hello_get_extensions (const unsigned char *y,
         r->server_extensions[i].type = raw_to_uint16(y);
         r->server_extensions[i].length = raw_to_uint16(y+2);
         // should check if length is reasonable?
-        r->server_extensions[i].data = malloc(r->server_extensions[i].length);
+        r->server_extensions[i].data = joy_malloc(r->server_extensions[i].length);
         memcpy(r->server_extensions[i].data, y+4, r->server_extensions[i].length);
 
         r->num_server_extensions += 1;
@@ -1921,7 +1922,7 @@ void tls_update (struct tls *r,
 
         if (r->handshake_buffer == NULL) {
             /* Allocate memory */
-            r->handshake_buffer = calloc(len, sizeof(unsigned char));
+            r->handshake_buffer = joy_calloc(len, sizeof(unsigned char));
 
             if (r->handshake_buffer == NULL) {
                 joy_log_err("malloc for handshake data failed");
@@ -1931,7 +1932,7 @@ void tls_update (struct tls *r,
             /* Reallocate memory to fit more */
             unsigned char *tmp_ptr = NULL;
 
-            tmp_ptr = realloc(r->handshake_buffer,
+            tmp_ptr = joy_realloc(r->handshake_buffer,
                               r->handshake_length + (len*sizeof(unsigned char)));
 
             if (tmp_ptr) {
@@ -1984,7 +1985,7 @@ void tls_update (struct tls *r,
              * that we previously collected.
              */
             tls_handshake_buffer_parse(r);
-            free(r->handshake_buffer);
+            joy_free(r->handshake_buffer);
             r->handshake_buffer = NULL;
             r->handshake_length = 0;
 
@@ -2703,37 +2704,37 @@ static int tls_test_certificate_parsing() {
                     /* Known values */
                     strncpy(kat_subject[0].id, "countryName", MAX_OPENSSL_STRING);
                     kat_subject[0].data_length = 2;
-                    kat_subject[0].data = calloc(kat_subject[0].data_length, sizeof(unsigned char));
+                    kat_subject[0].data = joy_calloc(kat_subject[0].data_length, sizeof(unsigned char));
                     memcpy(kat_subject[0].data, "US", kat_subject[0].data_length);
 
                     strncpy(kat_subject[1].id, "stateOrProvinceName", MAX_OPENSSL_STRING);
                     kat_subject[1].data_length = 10;
-                    kat_subject[1].data = calloc(kat_subject[1].data_length, sizeof(unsigned char));
+                    kat_subject[1].data = joy_calloc(kat_subject[1].data_length, sizeof(unsigned char));
                     memcpy(kat_subject[1].data, "California", kat_subject[1].data_length);
 
                     strncpy(kat_subject[2].id, "localityName", MAX_OPENSSL_STRING);
                     kat_subject[2].data_length = 11;
-                    kat_subject[2].data = calloc(kat_subject[2].data_length, sizeof(unsigned char));
+                    kat_subject[2].data = joy_calloc(kat_subject[2].data_length, sizeof(unsigned char));
                     memcpy(kat_subject[2].data, "Los Angeles", kat_subject[2].data_length);
 
                     strncpy(kat_subject[3].id, "organizationName", MAX_OPENSSL_STRING);
                     kat_subject[3].data_length = 12;
-                    kat_subject[3].data = calloc(kat_subject[3].data_length, sizeof(unsigned char));
+                    kat_subject[3].data = joy_calloc(kat_subject[3].data_length, sizeof(unsigned char));
                     memcpy(kat_subject[3].data, "Joy Software", kat_subject[3].data_length);
 
                     strncpy(kat_subject[4].id, "organizationalUnitName", MAX_OPENSSL_STRING);
                     kat_subject[4].data_length = 12;
-                    kat_subject[4].data = calloc(kat_subject[4].data_length, sizeof(unsigned char));
+                    kat_subject[4].data = joy_calloc(kat_subject[4].data_length, sizeof(unsigned char));
                     memcpy(kat_subject[4].data, "Unit Testing", kat_subject[4].data_length);
 
                     strncpy(kat_subject[5].id, "commonName", MAX_OPENSSL_STRING);
                     kat_subject[5].data_length = 10;
-                    kat_subject[5].data = calloc(kat_subject[5].data_length, sizeof(unsigned char));
+                    kat_subject[5].data = joy_calloc(kat_subject[5].data_length, sizeof(unsigned char));
                     memcpy(kat_subject[5].data, "github.com", kat_subject[5].data_length);
 
                     strncpy(kat_subject[6].id, "emailAddress", MAX_OPENSSL_STRING);
                     kat_subject[6].data_length = 16;
-                    kat_subject[6].data = calloc(kat_subject[6].data_length, sizeof(unsigned char));
+                    kat_subject[6].data = joy_calloc(kat_subject[6].data_length, sizeof(unsigned char));
                     memcpy(kat_subject[6].data, "dummy@brains.com", kat_subject[6].data_length);
 
                     /*
@@ -2757,7 +2758,7 @@ static int tls_test_certificate_parsing() {
                     /* Cleanup the temp known value */
                     for (j = 0; j < known_items_count; j++) {
                         if (kat_subject[j].data) {
-                            free(kat_subject[j].data);
+                            joy_free(kat_subject[j].data);
                         }
                     }
                 } else {
@@ -2795,37 +2796,37 @@ static int tls_test_certificate_parsing() {
                     /* Known values */
                     strncpy(kat_issuer[0].id, "countryName", MAX_OPENSSL_STRING);
                     kat_issuer[0].data_length = 2;
-                    kat_issuer[0].data = calloc(kat_issuer[0].data_length, sizeof(unsigned char));
+                    kat_issuer[0].data = joy_calloc(kat_issuer[0].data_length, sizeof(unsigned char));
                     memcpy(kat_issuer[0].data, "US", kat_issuer[0].data_length);
 
                     strncpy(kat_issuer[1].id, "stateOrProvinceName", MAX_OPENSSL_STRING);
                     kat_issuer[1].data_length = 10;
-                    kat_issuer[1].data = calloc(kat_issuer[1].data_length, sizeof(unsigned char));
+                    kat_issuer[1].data = joy_calloc(kat_issuer[1].data_length, sizeof(unsigned char));
                     memcpy(kat_issuer[1].data, "California", kat_issuer[1].data_length);
 
                     strncpy(kat_issuer[2].id, "localityName", MAX_OPENSSL_STRING);
                     kat_issuer[2].data_length = 11;
-                    kat_issuer[2].data = calloc(kat_issuer[2].data_length, sizeof(unsigned char));
+                    kat_issuer[2].data = joy_calloc(kat_issuer[2].data_length, sizeof(unsigned char));
                     memcpy(kat_issuer[2].data, "Los Angeles", kat_issuer[2].data_length);
 
                     strncpy(kat_issuer[3].id, "organizationName", MAX_OPENSSL_STRING);
                     kat_issuer[3].data_length = 12;
-                    kat_issuer[3].data = calloc(kat_issuer[3].data_length, sizeof(unsigned char));
+                    kat_issuer[3].data = joy_calloc(kat_issuer[3].data_length, sizeof(unsigned char));
                     memcpy(kat_issuer[3].data, "Joy Software", kat_issuer[3].data_length);
 
                     strncpy(kat_issuer[4].id, "organizationalUnitName", MAX_OPENSSL_STRING);
                     kat_issuer[4].data_length = 12;
-                    kat_issuer[4].data = calloc(kat_issuer[4].data_length, sizeof(unsigned char));
+                    kat_issuer[4].data = joy_calloc(kat_issuer[4].data_length, sizeof(unsigned char));
                     memcpy(kat_issuer[4].data, "Unit Testing", kat_issuer[4].data_length);
 
                     strncpy(kat_issuer[5].id, "commonName", MAX_OPENSSL_STRING);
                     kat_issuer[5].data_length = 10;
-                    kat_issuer[5].data = calloc(kat_issuer[5].data_length, sizeof(unsigned char));
+                    kat_issuer[5].data = joy_calloc(kat_issuer[5].data_length, sizeof(unsigned char));
                     memcpy(kat_issuer[5].data, "github.com", kat_issuer[5].data_length);
 
                     strncpy(kat_issuer[6].id, "emailAddress", MAX_OPENSSL_STRING);
                     kat_issuer[6].data_length = 16;
-                    kat_issuer[6].data = calloc(kat_issuer[6].data_length, sizeof(unsigned char));
+                    kat_issuer[6].data = joy_calloc(kat_issuer[6].data_length, sizeof(unsigned char));
                     memcpy(kat_issuer[6].data, "dummy@brains.com", kat_issuer[6].data_length);
 
                     /*
@@ -2849,7 +2850,7 @@ static int tls_test_certificate_parsing() {
                     /* Cleanup the temp known value */
                     for (j = 0; j < known_items_count; j++) {
                         if (kat_issuer[j].data) {
-                            free(kat_issuer[j].data);
+                            joy_free(kat_issuer[j].data);
                         }
                     }
                 } else {
@@ -2976,17 +2977,17 @@ static int tls_test_certificate_parsing() {
                     /* Known values */
                     strncpy(kat_extensions[0].id, "X509v3 Subject Key Identifier", MAX_OPENSSL_STRING);
                     kat_extensions[0].data_length = 59;
-                    kat_extensions[0].data = calloc(kat_extensions[0].data_length, sizeof(unsigned char));
+                    kat_extensions[0].data = joy_calloc(kat_extensions[0].data_length, sizeof(unsigned char));
                     memcpy(kat_extensions[0].data, known_subject_key_identifier, kat_extensions[0].data_length);
 
                     strncpy(kat_extensions[1].id, "X509v3 Authority Key Identifier", MAX_OPENSSL_STRING);
                     kat_extensions[1].data_length = 66;
-                    kat_extensions[1].data = calloc(kat_extensions[1].data_length, sizeof(unsigned char));
+                    kat_extensions[1].data = joy_calloc(kat_extensions[1].data_length, sizeof(unsigned char));
                     memcpy(kat_extensions[1].data, known_authority_key_identifier, kat_extensions[1].data_length);
 
                     strncpy(kat_extensions[2].id, "X509v3 Basic Constraints", MAX_OPENSSL_STRING);
                     kat_extensions[2].data_length = 7;
-                    kat_extensions[2].data = calloc(kat_extensions[2].data_length, sizeof(unsigned char));
+                    kat_extensions[2].data = joy_calloc(kat_extensions[2].data_length, sizeof(unsigned char));
                     memcpy(kat_extensions[2].data, known_basic_constraints, kat_extensions[2].data_length);
 
                     /*
@@ -3010,7 +3011,7 @@ static int tls_test_certificate_parsing() {
                     /* Cleanup the temp known value */
                     for (j = 0; j < known_items_count; j++) {
                         if (kat_extensions[j].data) {
-                            free(kat_extensions[j].data);
+                            joy_free(kat_extensions[j].data);
                         }
                     }
                 } else {
@@ -3247,7 +3248,7 @@ static int tls_test_extract_client_hello(const unsigned char *data,
         /* Fill in the KAT extensions */
         known_extensions[0].type = 0x0000;
         known_extensions[0].length = 21;
-        known_extensions[0].data = calloc(known_extensions[0].length, sizeof(unsigned char));
+        known_extensions[0].data = joy_calloc(known_extensions[0].length, sizeof(unsigned char));
         memcpy(known_extensions[0].data, kat_data_0, known_extensions[0].length);
 
         known_extensions[1].type = 0x0017;
@@ -3255,16 +3256,16 @@ static int tls_test_extract_client_hello(const unsigned char *data,
 
         known_extensions[2].type = 0xff01;
         known_extensions[2].length = 1;
-        known_extensions[2].data = calloc(known_extensions[2].length, sizeof(unsigned char));
+        known_extensions[2].data = joy_calloc(known_extensions[2].length, sizeof(unsigned char));
 
         known_extensions[3].type = 0x000a;
         known_extensions[3].length = 10;
-        known_extensions[3].data = calloc(known_extensions[3].length, sizeof(unsigned char));
+        known_extensions[3].data = joy_calloc(known_extensions[3].length, sizeof(unsigned char));
         memcpy(known_extensions[3].data, kat_data_3, known_extensions[3].length);
 
         known_extensions[4].type = 0x000b;
         known_extensions[4].length = 2;
-        known_extensions[4].data = calloc(known_extensions[4].length, sizeof(unsigned char));
+        known_extensions[4].data = joy_calloc(known_extensions[4].length, sizeof(unsigned char));
         memcpy(known_extensions[4].data, kat_data_4, known_extensions[4].length);
 
         known_extensions[5].type = 0x0023;
@@ -3272,12 +3273,12 @@ static int tls_test_extract_client_hello(const unsigned char *data,
 
         known_extensions[6].type = 0x0010;
         known_extensions[6].length = 14;
-        known_extensions[6].data = calloc(known_extensions[6].length, sizeof(unsigned char));
+        known_extensions[6].data = joy_calloc(known_extensions[6].length, sizeof(unsigned char));
         memcpy(known_extensions[6].data, kat_data_6, known_extensions[6].length);
 
         known_extensions[7].type = 0x0005;
         known_extensions[7].length = 5;
-        known_extensions[7].data = calloc(known_extensions[7].length, sizeof(unsigned char));
+        known_extensions[7].data = joy_calloc(known_extensions[7].length, sizeof(unsigned char));
         memcpy(known_extensions[7].data, kat_data_7, known_extensions[7].length);
 
         known_extensions[8].type = 0x0012;
@@ -3288,7 +3289,7 @@ static int tls_test_extract_client_hello(const unsigned char *data,
 
         known_extensions[10].type = 0x000d;
         known_extensions[10].length = 24;
-        known_extensions[10].data = calloc(known_extensions[10].length, sizeof(unsigned char));
+        known_extensions[10].data = joy_calloc(known_extensions[10].length, sizeof(unsigned char));
         memcpy(known_extensions[10].data, kat_data_10, known_extensions[10].length);
 
         if (record->num_ciphersuites != known_ciphersuites_count) {
@@ -3329,7 +3330,7 @@ static int tls_test_extract_client_hello(const unsigned char *data,
                     }
 
                     /* Free the temporary allocated data */
-                    free(known_extensions[i].data);
+                    joy_free(known_extensions[i].data);
                 }
             }
         }
@@ -3392,11 +3393,11 @@ static int tls_test_extract_server_hello(const unsigned char *data,
 
         known_extensions[1].type = 0xff01;
         known_extensions[1].length = 1;
-        known_extensions[1].data = calloc(known_extensions[1].length, sizeof(unsigned char));
+        known_extensions[1].data = joy_calloc(known_extensions[1].length, sizeof(unsigned char));
 
         known_extensions[2].type = 0x000b;
         known_extensions[2].length = 4;
-        known_extensions[2].data = calloc(known_extensions[2].length, sizeof(unsigned char));
+        known_extensions[2].data = joy_calloc(known_extensions[2].length, sizeof(unsigned char));
         memcpy(known_extensions[2].data, kat_data_2, known_extensions[2].length);
 
         known_extensions[3].type = 0x0023;
@@ -3438,7 +3439,7 @@ static int tls_test_extract_server_hello(const unsigned char *data,
                     }
 
                     /* Free the temporary allocated data */
-                    free(known_extensions[i].data);
+                    joy_free(known_extensions[i].data);
                 }
             }
         }

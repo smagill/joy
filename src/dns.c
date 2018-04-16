@@ -105,6 +105,7 @@
 #include "anon.h"
 #include "err.h"
 #include "p2f.h"
+#include "joy_mem.h"
 
 /**
  * \remarks
@@ -580,7 +581,7 @@ static enum status process_dns (const struct pcap_pkthdr *h, const void *start, 
 
     // printf("dns len: %u name: %s qr: %u rcode: %u\n", len-14, name, qr, rcode);
     if (!r->dns.dns_name[r->op]) {
-        r->dns.dns_name[r->op] = malloc(len);
+        r->dns.dns_name[r->op] = joy_malloc(len);
         if (r->dns.dns_name[r->op] == NULL) {
             return failure;
         }
@@ -775,7 +776,7 @@ void dns_init (struct dns **dns_handle) {
         dns_delete(dns_handle);
     }
 
-    *dns_handle = malloc(sizeof(struct dns));
+    *dns_handle = joy_malloc(sizeof(struct dns));
     if (*dns_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -801,12 +802,12 @@ void dns_delete (struct dns **dns_handle) {
 
     for (i=0; i<dns->pkt_count; i++) {
         if (dns->dns_name[i]) {
-            free(dns->dns_name[i]);
+            joy_free(dns->dns_name[i]);
         }
     }
 
     /* Free the memory and set to NULL */
-    free(dns);
+    joy_free(dns);
     *dns_handle = NULL;
 }
 
@@ -842,7 +843,7 @@ void dns_update (struct dns *dns, const struct pcap_pkthdr *header, const void *
 
     // printf("dns len: %u name: %s qr: %u rcode: %u\n", len-14, name, qr, rcode);
     if (!dns->dns_name[dns->pkt_count]) {
-        dns->dns_name[dns->pkt_count] = malloc(len);
+        dns->dns_name[dns->pkt_count] = joy_malloc(len);
         if (dns->dns_name[dns->pkt_count] == NULL) {
             return; /* failure */
         }

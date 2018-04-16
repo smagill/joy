@@ -70,6 +70,7 @@
 #include "p2f.h"
 #include "err.h" 
 #include <openssl/sha.h>
+#include "joy_mem.h"
 
 static struct host_flow host_proc_flow_table_array[HOST_PROC_FLOW_TABLE_LEN];
 
@@ -92,7 +93,7 @@ int calculate_sha256_hash(unsigned char* path, unsigned char *output)
 	memset(&sha256, 0x00, sizeof(SHA256_CTX));
 	SHA256_Init(&sha256);
     
-	buffer = malloc(bufSize);
+	buffer = joy_malloc(bufSize);
 	if (buffer == NULL) {
 		return -1;
 	}
@@ -259,7 +260,7 @@ void process_get_file_version(struct host_flow *record) {
 
 	if (verSize != 0)
 	{
-		LPSTR verData = malloc(verSize);
+		LPSTR verData = joy_malloc(verSize);
 
 		if (GetFileVersionInfo(record->full_path, verHandle, verSize, verData))
 		{
@@ -270,7 +271,7 @@ void process_get_file_version(struct host_flow *record) {
 					VS_FIXEDFILEINFO *verInfo = (VS_FIXEDFILEINFO *)lpBuffer;
 					if (verInfo->dwSignature == 0xfeef04bd)
 					{
-						record->file_version = malloc(PROC_EXE_LEN);
+						record->file_version = joy_malloc(PROC_EXE_LEN);
 						if (record->file_version != NULL) {
 							// Doesn't matter if you are on 32 bit or 64 bit,
 							// DWORD is always 32 bits, so first two revision numbers
@@ -321,7 +322,7 @@ void get_process_info(HANDLE hProcessSnap, unsigned long pid, struct host_flow *
 			// store data we have already
 			record->threads = pe32.cntThreads;
 			record->parent_pid = pe32.th32ParentProcessID;
-			record->exe_name = malloc(strlen(pe32.szExeFile) + 1);
+			record->exe_name = joy_malloc(strlen(pe32.szExeFile) + 1);
 			if (record->exe_name != NULL) {
 				memset(record->exe_name, 0, (strlen(pe32.szExeFile) + 1));
 				strncpy(record->exe_name, pe32.szExeFile, strlen(pe32.szExeFile));
@@ -330,7 +331,7 @@ void get_process_info(HANDLE hProcessSnap, unsigned long pid, struct host_flow *
 			// Retrieve the full path name class.
 			hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
 			if (hProcess != NULL) {
-				record->full_path = malloc(PROC_PATH_LEN);
+				record->full_path = joy_malloc(PROC_PATH_LEN);
 				if (record->full_path != NULL) {
 					unsigned long seconds = 0;
 					char *prev_hash = NULL;
@@ -342,7 +343,7 @@ void get_process_info(HANDLE hProcessSnap, unsigned long pid, struct host_flow *
 					process_get_file_version(record);
 
 					prev_hash = get_previous_hash_by_path(record->full_path);
-					record->hash = malloc(2 * SHA256_DIGEST_LENGTH + 1);
+					record->hash = joy_malloc(2 * SHA256_DIGEST_LENGTH + 1);
 					if (record->hash != NULL) {
 						if (prev_hash) {
 							strcpy(record->hash,prev_hash);
@@ -396,7 +397,7 @@ int host_flow_table_add_tcp(int all_sockets) {
 		return 1;
 	}
 
-	pTcpTable = (MIB_TCPTABLE2 *)malloc(sizeof(MIB_TCPTABLE2));
+	pTcpTable = (MIB_TCPTABLE2 *)joy_malloc(sizeof(MIB_TCPTABLE2));
 	if (pTcpTable == NULL) {
 		joy_log_err("Error allocating memory\n");
 		CloseHandle(hProcessSnap);
@@ -409,7 +410,7 @@ int host_flow_table_add_tcp(int all_sockets) {
 	if ((dwRetVal = GetTcpTable2(pTcpTable, &ulSize, TRUE)) ==
 		ERROR_INSUFFICIENT_BUFFER) {
 		free(pTcpTable);
-		pTcpTable = (MIB_TCPTABLE2 *)malloc(ulSize);
+		pTcpTable = (MIB_TCPTABLE2 *)joy_malloc(ulSize);
 		if (pTcpTable == NULL) {
 			joy_log_err("Error allocating memory\n");
 			CloseHandle(hProcessSnap);
@@ -575,13 +576,13 @@ static void get_pid_path_hash (struct host_flow *hf) {
     if (len > 0) {
         /* got the link which has the full path */
         buffer[len] = 0;
-        hf->full_path = malloc(strlen(buffer)+1);
+        hf->full_path = joy_malloc(strlen(buffer)+1);
         if (hf->full_path) {
             char *prev_hash = NULL;
 
             strcpy(hf->full_path,buffer);
             prev_hash = get_previous_hash_by_path(hf->full_path);
-            hf->hash = malloc(2 * SHA256_DIGEST_LENGTH + 1);
+            hf->hash = joy_malloc(2 * SHA256_DIGEST_LENGTH + 1);
             if (hf->hash != NULL) {
                 if (prev_hash) {
                     strcpy(hf->hash,prev_hash);
@@ -668,7 +669,7 @@ static void host_flow_table_add_tcp (unsigned int all_sockets) {
         if (hf != NULL) {
             hf->pid = fr.pid;
             if (strlen(fr.command)) {
-                hf->exe_name = malloc(strlen(fr.command)+1);
+                hf->exe_name = joy_malloc(strlen(fr.command)+1);
                 strcpy(hf->exe_name,fr.command);
             }
             hf->uptime_seconds = get_process_uptime(hf->pid);
@@ -802,7 +803,7 @@ char* get_full_path_from_pid (long pid) {
         return NULL;
     }
 
-    pbuf = malloc(strlen(pathbuf)+1);
+    pbuf = joy_malloc(strlen(pathbuf)+1);
     if (pbuf != NULL) {
         strcpy(pbuf,pathbuf);
     }
@@ -846,8 +847,8 @@ char* get_application_version (char* full_path) {
         strcat(plist_file,".app/Contents/Info.plist");
 
         /* setup the command to retireve the version info */
-        ver_cmd = malloc(found_base + 100);
-        ver_string = malloc(64);
+        ver_cmd = joy_malloc(found_base + 100);
+        ver_string = joy_malloc(64);
         sprintf(ver_cmd,"plutil -p \"%s\" | grep CFBundleShortVersionString | awk \'{print $3}\' | tr -d \\\"", plist_file);
 
         /* execute command and read in the output */
@@ -856,7 +857,7 @@ char* get_application_version (char* full_path) {
 
         /* close the pipe and free up the cmd memory */
         pclose(ver_file);
-        free(ver_cmd);
+        joy_free(ver_cmd);
  
         /* return version string of the application */
         return ver_string;
@@ -883,7 +884,7 @@ void lsof_process_output(char *s, int sockets) {
                         if (hf != NULL) {
                             hf->pid = fr.pid;
                             if (strlen(fr.command)) {
-                                hf->exe_name = malloc(strlen(fr.command)+1);
+                                hf->exe_name = joy_malloc(strlen(fr.command)+1);
                             }
                             if (hf->exe_name != NULL) {
                                 strcpy(hf->exe_name,fr.command);
@@ -892,7 +893,7 @@ void lsof_process_output(char *s, int sockets) {
                                     char *prev_hash = NULL;
 
                                     prev_hash = get_previous_hash_by_path(hf->full_path);
-                                    hf->hash = malloc(2 * SHA256_DIGEST_LENGTH + 1);
+                                    hf->hash = joy_malloc(2 * SHA256_DIGEST_LENGTH + 1);
                                     if (hf->hash != NULL) {
                                         if (prev_hash) {
                                             strcpy(hf->hash,prev_hash);

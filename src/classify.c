@@ -54,6 +54,7 @@
 #include "classify.h"
 #include "p2f.h"
 #include "utils.h"
+#include "joy_mem.h"
 
 /** finds the minimum value between to inputs */
 #ifndef WIN32
@@ -453,8 +454,8 @@ float classify (const unsigned short *pkt_len, const struct timeval *pkt_time,
         features[i] = 0.0;
     }
 
-	merged_lens = malloc(sizeof(uint16_t)*(op_n + ip_n));
-	merged_times = malloc(sizeof(uint16_t)*(op_n + ip_n));
+	merged_lens = joy_malloc(sizeof(uint16_t)*(op_n + ip_n));
+	merged_times = joy_malloc(sizeof(uint16_t)*(op_n + ip_n));
 
     // fill out meta data
     features[1] = (float)dp; // destination port

@@ -46,6 +46,7 @@
 
 #include "proto_identify.h"
 #include "err.h"
+#include "joy_mem.h"
 
 
 /* --------------------------------------------------
@@ -408,7 +409,7 @@ struct keyword_dict_node *kd_root = NULL;
  */
 static struct keyword_dict_node *alloc_kdn(void) {
 
-    return calloc(1, sizeof(struct keyword_dict_node));
+    return joy_calloc(1, sizeof(struct keyword_dict_node));
 }
 
 /**
@@ -428,7 +429,7 @@ static void destroy_kdn(struct keyword_dict_node *node) {
     }
 
     if (node->child == NULL || node->num_children == 0) {
-        free(node);
+        joy_free(node);
         return;
     }
 
@@ -447,7 +448,7 @@ static void destroy_kdn(struct keyword_dict_node *node) {
     }
 
     /* Now delete the parent */
-    free(node);
+    joy_free(node);
     return;
 }
 

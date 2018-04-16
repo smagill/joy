@@ -61,6 +61,7 @@
 #include "tls.h"
 #include "config.h"
 #include "err.h"
+#include "joy_mem.h"
 
 /*
  * External objects, defined in joy
@@ -581,10 +582,10 @@ void nfv9_process_flow_record (struct flow_record *nf_record,
                 break;
             case IDP: 
                 if (nf_record->idp != NULL) {
-                    free(nf_record->idp);
+                    joy_free(nf_record->idp);
                 }
                 nf_record->idp_len = htons(cur_template->fields[i].FieldLength);
-                nf_record->idp = malloc(nf_record->idp_len);
+                nf_record->idp = joy_malloc(nf_record->idp_len);
                 if (nf_record->idp != NULL) {
                     memcpy(nf_record->idp, flow_data, nf_record->idp_len);
                 }
@@ -1126,7 +1127,7 @@ static void template () {
 static unsigned int
 nfv9_register_template_handler (const struct nfv9_template *template,
                                     template_handler_func f) {
-    struct template_handler *h = malloc(sizeof(struct template_handler));
+    struct template_handler *h = joy_malloc(sizeof(struct template_handler));
 
     if (h == NULL) {
         printf("error: could not allocate handler\n");

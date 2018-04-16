@@ -48,6 +48,7 @@
 #include "utils.h"
 #include "pkt.h"
 #include "err.h"
+#include "joy_mem.h"
 
 /**
  * \brief Table storing IANA DHCP option name strings
@@ -137,7 +138,7 @@ void dhcp_init(struct dhcp **dhcp_handle)
         dhcp_delete(dhcp_handle);
     }
 
-    *dhcp_handle = malloc(sizeof(struct dhcp));
+    *dhcp_handle = joy_malloc(sizeof(struct dhcp));
     if (*dhcp_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -166,23 +167,23 @@ void dhcp_delete(struct dhcp **dhcp_handle)
         int k = 0;
 
         if (dhcp->messages[i].sname) {
-            free(dhcp->messages[i].sname);
+            joy_free(dhcp->messages[i].sname);
         }
 
         if (dhcp->messages[i].file) {
-            free(dhcp->messages[i].file);
+            joy_free(dhcp->messages[i].file);
         }
 
         for (k = 0; k < dhcp->messages[i].options_count; k++) {
             /* Free up memory in the options */
             if (dhcp->messages[i].options[k].value) {
-                free(dhcp->messages[i].options[k].value);
+                joy_free(dhcp->messages[i].options[k].value);
             }
         }
     }
 
     /* Free the memory and set to NULL */
-    free(dhcp);
+    joy_free(dhcp);
     *dhcp_handle = NULL;
 }
 
@@ -272,7 +273,7 @@ static void dhcp_get_option_value(struct dhcp_option *opt,
      */
     if (!dhcp_option_value_to_string(opt, data_ptr)) {
         /* Allocate memory for the option data */
-        opt->value = malloc(opt_len);
+        opt->value = joy_malloc(opt_len);
 
         memcpy(opt->value, data_ptr, opt_len);
     }
@@ -352,7 +353,7 @@ void dhcp_update(struct dhcp *dhcp,
 
     if (*ptr != 0) {
         /* Server host name exists so alloc and copy it */
-        msg->sname = malloc(MAX_DHCP_SNAME);
+        msg->sname = joy_malloc(MAX_DHCP_SNAME);
         memset(msg->sname, 0, MAX_DHCP_SNAME);
         strncpy(msg->sname, (const char *)ptr, MAX_DHCP_SNAME);
         msg->sname[MAX_DHCP_SNAME - 1] = '\0';
@@ -361,7 +362,7 @@ void dhcp_update(struct dhcp *dhcp,
 
     if (*ptr != 0) {
         /* Boot file name exists so alloc and copy it */
-        msg->file = malloc(MAX_DHCP_FILE);
+        msg->file = joy_malloc(MAX_DHCP_FILE);
         memset(msg->file, 0, MAX_DHCP_FILE);
         strncpy(msg->file, (const char *)ptr, MAX_DHCP_FILE);
         msg->file[MAX_DHCP_FILE - 1] = '\0';
@@ -778,7 +779,7 @@ static int dhcp_test_vanilla_parsing() {
     msg->giaddr.s_addr = ntohl(0x00000000);
     memcpy(msg->chaddr, kat_chaddr, MAX_DHCP_CHADDR);
 
-    msg->file = malloc(MAX_DHCP_FILE);
+    msg->file = joy_malloc(MAX_DHCP_FILE);
     memset(msg->file, 0, MAX_DHCP_FILE);
     strncpy(msg->file, "Pythagoras.pxe", MAX_DHCP_FILE);
 

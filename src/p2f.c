@@ -68,6 +68,7 @@
 #include "err.h" /* errors and logging */
 #include "osdetect.h"
 #include "utils.h"
+#include "joy_mem.h"
 
 /*
  *  global variables
@@ -751,7 +752,7 @@ struct flow_record *flow_key_get_record (const struct flow_key *key,
     if (create_new_records) {
 
         /* allocate and initialize a new flow record */
-        record = malloc(sizeof(struct flow_record));
+        record = joy_malloc(sizeof(struct flow_record));
         debug_printf("LIST record %p allocated\n", record);
 
         if (record == NULL) {
@@ -816,11 +817,11 @@ static void flow_record_delete (struct flow_record *r) {
      * free the memory allocated inside of flow record
      */
     if (r->idp) {
-        free(r->idp);
+        joy_free(r->idp);
     }
 
     if (r->exe_name) {
-        free(r->exe_name);
+        joy_free(r->exe_name);
     }
 
 	if (r->full_path) {
@@ -841,8 +842,8 @@ static void flow_record_delete (struct flow_record *r) {
      * zeroize memory (this is defensive coding; pointers to deleted
      * records will result in crashes rather than silent errors)
      */
-    memset(r, 0, sizeof(struct flow_record));
-    free(r);
+    memset(r, 0x00, sizeof(struct flow_record));
+    joy_free(r);
 }
 
 /**

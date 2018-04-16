@@ -59,6 +59,7 @@
 #include "pkt_proc.h"
 #include "p2f.h"
 #include "config.h"
+#include "joy_mem.h"
 
 /********************************************
  *********
@@ -342,11 +343,11 @@ static inline void ipfix_delete_template(struct ipfix_template *template) {
     uint16_t field_count = template->hdr.field_count;
     size_t field_list_size = sizeof(struct ipfix_template_field) * field_count;
     memset(template->fields, 0, field_list_size);
-    free(template->fields);
+    joy_free(template->fields);
   }
 
   memset(template, 0, sizeof(struct ipfix_template));
-  free(template);
+  joy_free(template);
 }
 
 
@@ -656,10 +657,10 @@ static int ipfix_cts_search(struct ipfix_template_key needle,
 static inline void ipfix_template_fields_malloc(struct ipfix_template *template,
                                                 size_t field_list_size) {
   if (template->fields != NULL) {
-    free(template->fields);
+    joy_free(template->fields);
   }
 
-  template->fields = malloc(field_list_size);
+  template->fields =  joy_malloc(field_list_size);
 
   if (template->fields == NULL) {
     loginfo("error: could not allocate memory for field list");
@@ -671,7 +672,7 @@ static inline void ipfix_template_fields_malloc(struct ipfix_template *template,
 
 static inline struct ipfix_template *ipfix_template_malloc(size_t field_list_size) {
   /* Init a new template on the heap */
-  struct ipfix_template *template = malloc(sizeof(struct ipfix_template));
+  struct ipfix_template *template =  joy_malloc(sizeof(struct ipfix_template));
 
   if (template != NULL){
     memset(template, 0, sizeof(struct ipfix_template));
@@ -1896,10 +1897,10 @@ static void ipfix_process_flow_record(struct flow_record *ix_record,
            * We have actual IDP data to process
            */
           if (ix_record->idp != NULL) {
-            free(ix_record->idp);
+            joy_free(ix_record->idp);
           }
           ix_record->idp_len = field_length;
-          ix_record->idp = malloc(ix_record->idp_len);
+          ix_record->idp =  joy_malloc(ix_record->idp_len);
           if (ix_record->idp != NULL) {
             memcpy(ix_record->idp, flow_data, ix_record->idp_len);
           }
@@ -1976,7 +1977,7 @@ static void ipfix_exp_template_fields_malloc(struct ipfix_exporter_template *tem
                                              uint16_t field_count) {
   size_t field_list_size = field_count * sizeof(struct ipfix_exporter_template_field);
 
-  template->fields = malloc(field_list_size);
+  template->fields = joy_malloc(field_list_size);
   memset(template->fields, 0, field_list_size);
 }
 
@@ -1999,7 +2000,7 @@ static void ipfix_delete_exp_template_fields(struct ipfix_exporter_template *tem
   size_t field_list_size = field_count * sizeof(struct ipfix_exporter_template_field);
   if (template->fields) {
     memset(template->fields, 0, field_list_size);
-    free(template->fields);
+    joy_free(template->fields);
   } else {
     loginfo("warning: fields were already null");
   }
@@ -2015,7 +2016,7 @@ static void ipfix_delete_exp_template_fields(struct ipfix_exporter_template *tem
  */
 static struct ipfix_exporter_template *ipfix_exp_template_malloc(uint16_t field_count) {
   /* Init a new exporter template on the heap */
-  struct ipfix_exporter_template *template = malloc(sizeof(struct ipfix_exporter_template));
+  struct ipfix_exporter_template *template = joy_malloc(sizeof(struct ipfix_exporter_template));
 
   if (template != NULL) {
     memset(template, 0, sizeof(struct ipfix_exporter_template));
@@ -2051,7 +2052,7 @@ static inline void ipfix_delete_exp_template(struct ipfix_exporter_template *tem
 
   /* Free the template */
   memset(template, 0, sizeof(struct ipfix_exporter_template));
-  free(template);
+  joy_free(template);
 }
 
 
@@ -2064,7 +2065,7 @@ static struct ipfix_exporter_data *ipfix_exp_data_record_malloc(void) {
   struct ipfix_exporter_data *data_record = NULL;
 
   /* Init a new exporter data record on the heap */
-  data_record = malloc(sizeof(struct ipfix_exporter_data));
+  data_record = joy_malloc(sizeof(struct ipfix_exporter_data));
 
   if (data_record != NULL) {
     memset(data_record, 0, sizeof(struct ipfix_exporter_data));
@@ -2098,7 +2099,7 @@ static inline void ipfix_delete_exp_data_record(struct ipfix_exporter_data *data
         /* Deallocate the IDP memory buffer */
         memset(data_record->record.idp_record.idp_field.info, 0,
                variable_len);
-        free(data_record->record.idp_record.idp_field.info);
+        joy_free(data_record->record.idp_record.idp_field.info);
       }
       break;
 
@@ -2108,7 +2109,7 @@ static inline void ipfix_delete_exp_data_record(struct ipfix_exporter_data *data
 
   /* Free the data record */
   memset(data_record, 0, sizeof(struct ipfix_exporter_data));
-  free(data_record);
+  joy_free(data_record);
 }
 
 
@@ -2317,7 +2318,7 @@ static void ipfix_exp_template_set_init(struct ipfix_exporter_template_set *set)
 static struct ipfix_exporter_template_set *ipfix_exp_template_set_malloc(void) {
   struct ipfix_exporter_template_set *template_set = NULL;
 
-  template_set = malloc(sizeof(struct ipfix_exporter_template_set));
+  template_set = joy_malloc(sizeof(struct ipfix_exporter_template_set));
 
   if (template_set != NULL) {
     ipfix_exp_template_set_init(template_set);
@@ -2415,7 +2416,7 @@ static void ipfix_delete_exp_template_set(struct ipfix_exporter_template_set *se
   ipfix_exp_template_set_cleanup(set);
 
   memset(set, 0, sizeof(struct ipfix_exporter_template_set));
-  free(set);
+  joy_free(set);
 }
 
 
@@ -2458,7 +2459,7 @@ static void ipfix_exp_data_set_init(struct ipfix_exporter_data_set *set,
 static struct ipfix_exporter_data_set *ipfix_exp_data_set_malloc(uint16_t rel_template_id) {
   struct ipfix_exporter_data_set *data_set = NULL;
 
-  data_set = malloc(sizeof(struct ipfix_exporter_data_set));
+  data_set = joy_malloc(sizeof(struct ipfix_exporter_data_set));
 
   if (data_set != NULL) {
     ipfix_exp_data_set_init(data_set, rel_template_id);
@@ -2556,7 +2557,7 @@ static void ipfix_delete_exp_data_set(struct ipfix_exporter_data_set *set) {
   ipfix_exp_data_set_cleanup(set);
 
   memset(set, 0, sizeof(struct ipfix_exporter_data_set));
-  free(set);
+  joy_free(set);
 }
 
 
@@ -2600,7 +2601,7 @@ static int ipfix_exp_set_node_init(struct ipfix_exporter_set_node *node,
   } else if (set_id == IPFIX_OPTION_SET) {
     /* Create and attached an option set */
     // TODO change to use option_set api when it has been made
-    option_set = malloc(sizeof(struct ipfix_exporter_option_set));
+    option_set = joy_malloc(sizeof(struct ipfix_exporter_option_set));
     node->set.option_set = option_set;
     //node->length = option_set->set_hdr.length;
   } else if (set_id >= 256) {
@@ -2635,7 +2636,7 @@ static int ipfix_exp_set_node_init(struct ipfix_exporter_set_node *node,
 static struct ipfix_exporter_set_node *ipfix_exp_set_node_malloc(uint16_t set_id) {
   struct ipfix_exporter_set_node *node = NULL;
 
-  node = malloc(sizeof(struct ipfix_exporter_set_node));
+  node = joy_malloc(sizeof(struct ipfix_exporter_set_node));
 
   if (node != NULL) {
     if (ipfix_exp_set_node_init(node, set_id)) {
@@ -2676,7 +2677,7 @@ static int ipfix_exp_set_node_cleanup(struct ipfix_exporter_set_node *node) {
   } else if (set_type == IPFIX_OPTION_SET) {
     /* Cleanup and delete the option set */
     // TODO change to use option_set api when it has been made
-    free(node->set.option_set);
+    joy_free(node->set.option_set);
   } else if (set_type >= 256) {
     /* Cleanup and delete the data set */
     ipfix_delete_exp_data_set(node->set.data_set);
@@ -2706,7 +2707,7 @@ static void ipfix_delete_exp_set_node(struct ipfix_exporter_set_node *node) {
   ipfix_exp_set_node_cleanup(node);
 
   memset(node, 0, sizeof(struct ipfix_exporter_set_node));
-  free(node);
+  joy_free(node);
 }
 
 
@@ -2741,7 +2742,7 @@ static void ipfix_exp_message_init(struct ipfix_message *message) {
 static struct ipfix_message *ipfix_exp_message_malloc(void) {
   struct ipfix_message *message = NULL;
 
-  message = malloc(sizeof(struct ipfix_message));
+  message = joy_malloc(sizeof(struct ipfix_message));
 
   if (message != NULL) {
     ipfix_exp_message_init(message);
@@ -2968,7 +2969,7 @@ static void ipfix_delete_exp_message(struct ipfix_message *message) {
   ipfix_exp_message_cleanup(message);
 
   memset(message, 0, sizeof(struct ipfix_message));
-  free(message);
+  joy_free(message);
 }
 
 
@@ -3249,7 +3250,7 @@ static struct ipfix_exporter_data *ipfix_exp_create_idp_data_record
      */ 
     if (idp_payload_len != 0) {
       data_record->record.idp_record.idp_field.info =
-          calloc(idp_payload_len, sizeof(unsigned char));
+          joy_calloc(idp_payload_len, sizeof(unsigned char));
 
       memcpy(data_record->record.idp_record.idp_field.info, fr_record->idp,
              idp_payload_len);

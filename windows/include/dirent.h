@@ -337,7 +337,7 @@ _wopendir(
     }
 
     /* Allocate new _WDIR structure */
-    dirp = (_WDIR*) malloc (sizeof (struct _WDIR));
+    dirp = (_WDIR*) joy_malloc (sizeof (struct _WDIR));
     if (dirp != NULL) {
         DWORD n;
 
@@ -350,7 +350,7 @@ _wopendir(
         n = GetFullPathNameW (dirname, 0, NULL, NULL);
 
         /* Allocate room for absolute directory name and search pattern */
-        dirp->patt = (wchar_t*) malloc (sizeof (wchar_t) * n + 16);
+        dirp->patt = (wchar_t*) joy_malloc (sizeof (wchar_t) * n + 16);
         if (dirp->patt) {
 
             /*
@@ -611,7 +611,7 @@ opendir(
     }
 
     /* Allocate memory for DIR structure */
-    dirp = (DIR*) malloc (sizeof (struct DIR));
+    dirp = (DIR*) joy_malloc (sizeof (struct DIR));
     if (dirp) {
         wchar_t wname[PATH_MAX];
         size_t n;

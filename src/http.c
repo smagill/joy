@@ -47,6 +47,7 @@
 #include "anon.h"
 #include "str_match.h"
 #include "err.h"
+#include "joy_mem.h"
 
 /** user name match structure */
 extern str_match_ctx  usernames_ctx;
@@ -80,7 +81,7 @@ void http_init (struct http **http_handle) {
         http_delete(http_handle);
     }
 
-    *http_handle = malloc(sizeof(struct http));
+    *http_handle =  joy_malloc(sizeof(struct http));
     if (*http_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -116,7 +117,7 @@ void http_update(struct http *http,
          * note: we leave room for null termination in the data buffer
          */
        
-        http->header = malloc(len);
+        http->header =  joy_malloc(len);
         if (http->header == NULL) {
             return; 
         }
@@ -196,11 +197,11 @@ void http_delete (struct http **http_handle) {
     }
 
     if (http->header) {
-        free(http->header);
+        joy_free(http->header);
     }
 
     /* Free the memory and set to NULL */
-    free(http);
+    joy_free(http);
     *http_handle = NULL;
 }
 

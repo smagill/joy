@@ -67,6 +67,7 @@
 #include "addr.h"
 #include "radix_trie.h"
 #include "str_match.h"
+#include "joy_mem.h"
 
 /** file used for output */ 
 FILE *anon_info;
@@ -364,7 +365,7 @@ enum status anon_init (const char *pathname, FILE *logfile) {
         }
         anon_print_subnets(anon_info);
         fprintf(anon_info, "configured %d subnets for anonymization\n", num_subnets);
-        free(line);
+        joy_free(line);
         fclose(fp);
     } 
     s = key_init(ANON_KEYFILE_DEFAULT);

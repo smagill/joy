@@ -54,6 +54,7 @@
 #include <unistd.h>  
 #include "anon.h"
 #include "radix_trie.h"
+#include "joy_mem.h"
 
 #ifdef WIN32
 #include "Ws2tcpip.h"
@@ -344,7 +345,7 @@ int main (int argc, char *argv[]) {
 
     }
       
-    free(line);
+    joy_free(line);
  
     return 0;
 }

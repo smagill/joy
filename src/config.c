@@ -50,6 +50,7 @@
 #include "radix_trie.h"
 #include "hdr_dsc.h" 
 #include "p2f.h"
+#include "joy_mem.h"
 
 #ifdef WIN32
 #include "unistd.h"
@@ -318,7 +319,7 @@ static FILE* open_config_file(const char *filename) {
         PWSTR windir = NULL;
 
         /* Allocate memory to store constructed file path */
-        filepath = calloc(MAX_FILEPATH, sizeof(char));
+        filepath = joy_calloc(MAX_FILEPATH, sizeof(char));
 
         SHGetKnownFolderPath(&FOLDERID_LocalAppData, 0, NULL, &windir);
 
@@ -331,7 +332,7 @@ static FILE* open_config_file(const char *filename) {
         }
 
         if (filepath) {
-            free(filepath);
+            joy_free(filepath);
         }
     }
 #endif
@@ -413,7 +414,7 @@ int config_set_from_file (struct configuration *config, const char *fname) {
             }
         }
     }
-    free(line);
+    joy_free(line);
     return ok;
 }
 

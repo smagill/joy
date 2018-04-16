@@ -47,6 +47,7 @@
 #include <string.h>
 #include "example.h"     
 #include "err.h"
+#include "joy_mem.h"
 
 /**
  * \brief Initialize the memory of Example struct.
@@ -60,7 +61,7 @@ __inline void example_init (struct example **example_handle) {
         example_delete(example_handle);
     }
 
-    *example_handle = malloc(sizeof(struct example));
+    *example_handle = joy_malloc(sizeof(struct example));
     if (*example_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -126,7 +127,7 @@ void example_delete (struct example **example_handle) {
     }
 
     /* Free the memory and set to NULL */
-    free(example);
+    joy_free(example);
     *example_handle = NULL;
 }
 

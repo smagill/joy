@@ -84,6 +84,7 @@
 #include "addr.h"
 #include "output.h"
 #include "updater.h"
+#include "joy_mem.h"
 
 #ifdef WIN32
 #include "Ws2tcpip.h"
@@ -138,7 +139,7 @@ static struct in_addr hex2addr (unsigned int x) {
  */
 static __inline void *rt_malloc (size_t s) {
     void *p = NULL;
-    p = malloc(s);
+    p = joy_malloc(s);
     if (p != NULL) {
         debug_printf("rt_malloc[0x%x] of %zu bytes\n", (unsigned int)p, s);
     }
@@ -152,7 +153,7 @@ static __inline void *rt_malloc (size_t s) {
 static __inline void rt_free (void *p) {
     if (p != NULL) {
         debug_printf("rt_free[0x%x]\n", (unsigned int)p);
-        free(p);
+        joy_free(p);
     }
     p = NULL;
 }
@@ -559,7 +560,7 @@ enum status radix_trie_free (struct radix_trie *r) {
     if (r->num_flags) {
         /* Free any flags attached to the radix_trie */
         for (i = 0; i < r->num_flags; i++) {
-            free(r->flag[i]);
+            joy_free(r->flag[i]);
         }
     }
 
@@ -694,7 +695,7 @@ enum status radix_trie_add_subnets_from_file (struct radix_trie *rt,
             }
         }
       
-        free(line);
+        joy_free(line);
     
         fclose(fp);
     } 

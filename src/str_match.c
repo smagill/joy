@@ -51,6 +51,7 @@ size_t getline(char **lineptr, size_t *n, FILE *stream);
 
 #include "str_match.h"
 #include "anon.h"
+#include "joy_mem.h"
 
 #define matches_init(x) (x->count = 0)
 
@@ -197,7 +198,7 @@ int str_match_ctx_init_from_file (str_match_ctx ctx,
             }  
         }
     }
-    free(line);
+    joy_free(line);
   
     if (acsm_compile(ctx) != 0) {
         fprintf(stderr, "acsm_compile() error.\n");

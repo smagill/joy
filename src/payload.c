@@ -49,6 +49,7 @@
 #include "payload.h"     
 #include "err.h"
 #include "p2f.h"    
+#include "joy_mem.h"
 
 /**
  * \brief Initialize the memory of the payload struct.
@@ -62,7 +63,7 @@ __inline void payload_init (struct payload **payload_handle) {
         payload_delete(payload_handle);
     }
 
-    *payload_handle = malloc(sizeof(struct payload));
+    *payload_handle = joy_malloc(sizeof(struct payload));
     if (*payload_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -143,7 +144,7 @@ void payload_delete (struct payload **payload_handle) {
     }
 
     /* Free the memory and set to NULL */
-    free(payload);
+    joy_free(payload);
     *payload_handle = NULL;
 }
 

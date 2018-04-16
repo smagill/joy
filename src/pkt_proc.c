@@ -55,6 +55,7 @@
 #include "config.h"
 #include "utils.h"
 #include "proto_identify.h"
+#include "joy_mem.h"
 
 /*
  * external variables, defined in joy
@@ -1034,10 +1035,10 @@ void process_packet (unsigned char *ignore, const struct pcap_pkthdr *header,
      */
     if ((report_idp) && record->op && (record->idp_len == 0)) {
         if (record->idp != NULL) {
-            free(record->idp);
+            joy_free(record->idp);
         }
         record->idp_len = (ntohs(ip->ip_len) < report_idp ? ntohs(ip->ip_len) : report_idp);
-        record->idp = malloc(record->idp_len);
+        record->idp = joy_malloc(record->idp_len);
         memcpy(record->idp, ip, record->idp_len);
         joy_log_debug("Stashed %u bytes of IDP", record->idp_len);
     }

@@ -44,6 +44,7 @@
 #include <string.h>
 #include "utils.h"
 #include "err.h"
+#include "joy_mem.h"
 
 #define JOY_UTILS_MAX_FILEPATH 128
 
@@ -78,13 +79,13 @@ int BZ2_bzprintf(BZFILE *b, const char * format, ...)
 
     /* check resulting size and perform output accordingly */
     if (BZ_sz >= BZ_MAX_SIZE) {
-        char *BZ_dyn_buff = malloc(BZ_sz + 1);
+        char *BZ_dyn_buff = joy_malloc(BZ_sz + 1);
         if (BZ_dyn_buff != NULL) {
             va_start(arg, format);
             BZ_sz = vsnprintf(BZ_dyn_buff, (BZ_sz + 1), format, arg);
             va_end(arg);
             BZ2_bzwrite(b, BZ_dyn_buff, BZ_sz);
-            free(BZ_dyn_buff);
+            joy_free(BZ_dyn_buff);
         } else {
             /* error scenario, can't print out all the data,
              * let's just print what we can
@@ -114,7 +115,7 @@ JSON_Value* joy_utils_open_resource_parson(const char *filename) {
     char *filepath = NULL;
 
     /* Allocate memory to store constructed file path */
-    filepath = calloc(JOY_UTILS_MAX_FILEPATH, sizeof(char));
+    filepath = joy_calloc(JOY_UTILS_MAX_FILEPATH, sizeof(char));
 
     if (aux_resource_path) {
         /*
@@ -145,7 +146,7 @@ JSON_Value* joy_utils_open_resource_parson(const char *filename) {
 
     /* Cleanup */
     if (filepath) {
-        free(filepath);
+        joy_free(filepath);
     }
 
     return value;
@@ -163,7 +164,7 @@ FILE* joy_utils_open_test_file(const char *filename) {
     char *filepath = NULL;
 
     /* Allocate memory to store constructed file path */
-    filepath = calloc(JOY_UTILS_MAX_FILEPATH, sizeof(char));
+    filepath = joy_calloc(JOY_UTILS_MAX_FILEPATH, sizeof(char));
 
     /* Assume user CWD in root of Joy source package */
     strncpy(filepath, "./test/misc/", JOY_UTILS_MAX_FILEPATH);
@@ -183,7 +184,7 @@ FILE* joy_utils_open_test_file(const char *filename) {
 
     /* Cleanup */
     if (filepath) {
-        free(filepath);
+        joy_free(filepath);
     }
 
     return fp;
@@ -203,7 +204,7 @@ pcap_t* joy_utils_open_test_pcap(const char *filename) {
     char *filepath = NULL;
 
     /* Allocate memory to store constructed file path */
-    filepath = calloc(JOY_UTILS_MAX_FILEPATH, sizeof(char));
+    filepath = joy_calloc(JOY_UTILS_MAX_FILEPATH, sizeof(char));
 
     /* Assume user CWD in root of Joy source package */
     strncpy(filepath, "./test/pcaps/", JOY_UTILS_MAX_FILEPATH);
@@ -223,7 +224,7 @@ pcap_t* joy_utils_open_test_pcap(const char *filename) {
 
     /* Cleanup */
     if (filepath) {
-        free(filepath);
+        joy_free(filepath);
     }
 
     return handle;

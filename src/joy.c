@@ -51,6 +51,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include "joy_mem.h"
 
 #ifndef WIN32
 #include <libgen.h>

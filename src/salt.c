@@ -49,6 +49,7 @@
 #include "salt.h"
 #include "pkt.h"      /* for tcp macros */
 #include "err.h"
+#include "joy_mem.h"
 
 
 /**
@@ -63,7 +64,7 @@ void salt_init(struct salt **salt_handle) {
         salt_delete(salt_handle);
     }
 
-    *salt_handle = malloc(sizeof(struct salt));
+    *salt_handle = joy_malloc(sizeof(struct salt));
     if (*salt_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -209,7 +210,7 @@ void salt_delete (struct salt **salt_handle) {
     }
 
     /* Free the memory and set to NULL */
-    free(salt);
+    joy_free(salt);
     *salt_handle = NULL;
 }
 

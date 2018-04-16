@@ -26,7 +26,7 @@ size_t getline(char **lineptr, size_t *n, FILE *stream) {
         return -1;
     }
     if (bufptr == NULL) {
-        bufptr = malloc(128);
+        bufptr =  joy_malloc(128);
         if (bufptr == NULL) {
             return -1;
         }
@@ -36,7 +36,7 @@ size_t getline(char **lineptr, size_t *n, FILE *stream) {
     while(c != EOF) {
         if ((unsigned int)(p - bufptr) > (size - 1)) {
             size = size + 128;
-            bufptr = realloc(bufptr, size);
+            bufptr = joy_realloc(bufptr, size);
             if (bufptr == NULL) {
                 return -1;
             }

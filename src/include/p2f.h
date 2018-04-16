@@ -199,7 +199,7 @@ typedef struct flow_record *flow_record_list;
  * if flag=CREATE_RECORDS, a flow_record will be allocated and
  * initialized, but if flag=DONT_CREATE_RECORDS, then a NULL pointer
  * will be returned.  If flag=CREATE_RECORDS, a NULL pointer will be
- * returned if the malloc() call that attempts to allocate memory for
+ * returned if the  joy_malloc() call that attempts to allocate memory for
  * a new flow_record structure itself returns NULL.
  *
  * \brief If the pointer returned by flow_key_get_record() is not NULL, then

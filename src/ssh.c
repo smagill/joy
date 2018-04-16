@@ -57,6 +57,7 @@
 #include "utils.h"      /* for enum role */
 #include "p2f.h"        /* for zprintf_ ...        */
 #include "err.h"        /* for logging             */
+#include "joy_mem.h"
 
 /*
  *
@@ -142,7 +143,7 @@ static void vector_init(struct vector *vector) {
  */
 static void vector_free(struct vector *vector) {
     if (vector->bytes != NULL) {
-        free(vector->bytes);
+        joy_free(vector->bytes);
     }
     vector_init(vector);
 }
@@ -164,7 +165,7 @@ static void vector_set(struct vector *vector,
                        unsigned int len) {
     char *tmpptr = NULL;
 
-    tmpptr = malloc(len);
+    tmpptr = joy_malloc(len);
     if (tmpptr == NULL) {
         return;
     }
@@ -188,7 +189,7 @@ static void vector_append(struct vector *vector,
                           const char *data,
                           unsigned int len) {
 
-    vector->bytes = realloc(vector->bytes, vector->len + len);
+    vector->bytes = joy_realloc(vector->bytes, vector->len + len);
     if (vector->bytes == NULL) {
         return;
     }
@@ -208,7 +209,7 @@ static void vector_append(struct vector *vector,
 static char *vector_string(struct vector *vector) {
     char *s;
 
-    s = malloc(vector->len+1);
+    s = joy_malloc(vector->len+1);
     if (s == NULL) {
         return NULL;
     }
@@ -456,13 +457,13 @@ static void ssh_get_kex_algo(struct ssh *cli,
     }
 
     len = strlen(cli_algo);
-    cli->kex_algo = malloc(len+1);
+    cli->kex_algo = joy_malloc(len+1);
     strncpy(cli->kex_algo, cli_algo, len+1); /* strncpy will null-terminate the string */
-    srv->kex_algo = malloc(len+1);
+    srv->kex_algo = joy_malloc(len+1);
     strncpy(srv->kex_algo, cli_algo, len+1); /* strncpy will null-terminate the string */
 
-    free(cli_copy);
-    free(srv_copy);
+    joy_free(cli_copy);
+    joy_free(srv_copy);
 }
 
 /*
@@ -741,7 +742,7 @@ inline void ssh_init(struct ssh **ssh_handle) {
         ssh_delete(ssh_handle);
     }
 
-    *ssh_handle = malloc(sizeof(struct ssh));
+    *ssh_handle = joy_malloc(sizeof(struct ssh));
     if (*ssh_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -749,27 +750,27 @@ inline void ssh_init(struct ssh **ssh_handle) {
     }
     memset(*ssh_handle, 0, sizeof(struct ssh));
 
-    (*ssh_handle)->buffer                 = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->buffer);
-    (*ssh_handle)->kex_algos              = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->kex_algos);
-    (*ssh_handle)->s_host_key_algos       = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_host_key_algos);
-    (*ssh_handle)->c_encryption_algos     = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->c_encryption_algos);
-    (*ssh_handle)->s_encryption_algos     = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_encryption_algos);
-    (*ssh_handle)->c_mac_algos            = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->c_mac_algos);
-    (*ssh_handle)->s_mac_algos            = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_mac_algos);
-    (*ssh_handle)->c_comp_algos           = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->c_comp_algos);
-    (*ssh_handle)->s_comp_algos           = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_comp_algos);
-    (*ssh_handle)->c_languages            = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->c_languages);
-    (*ssh_handle)->s_languages            = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_languages);
-    (*ssh_handle)->s_hostkey_type         = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_hostkey_type);
-    (*ssh_handle)->s_signature_type       = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_signature_type);
-    (*ssh_handle)->c_kex                  = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->c_kex);
-    (*ssh_handle)->s_kex                  = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_kex);
-    (*ssh_handle)->s_hostkey              = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_hostkey);
-    (*ssh_handle)->s_signature            = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_signature);
-    (*ssh_handle)->s_gex_p                = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_gex_p);
-    (*ssh_handle)->s_gex_g                = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_gex_g);
+    (*ssh_handle)->buffer                 = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->buffer);
+    (*ssh_handle)->kex_algos              = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->kex_algos);
+    (*ssh_handle)->s_host_key_algos       = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_host_key_algos);
+    (*ssh_handle)->c_encryption_algos     = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->c_encryption_algos);
+    (*ssh_handle)->s_encryption_algos     = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_encryption_algos);
+    (*ssh_handle)->c_mac_algos            = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->c_mac_algos);
+    (*ssh_handle)->s_mac_algos            = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_mac_algos);
+    (*ssh_handle)->c_comp_algos           = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->c_comp_algos);
+    (*ssh_handle)->s_comp_algos           = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_comp_algos);
+    (*ssh_handle)->c_languages            = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->c_languages);
+    (*ssh_handle)->s_languages            = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_languages);
+    (*ssh_handle)->s_hostkey_type         = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_hostkey_type);
+    (*ssh_handle)->s_signature_type       = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_signature_type);
+    (*ssh_handle)->c_kex                  = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->c_kex);
+    (*ssh_handle)->s_kex                  = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_kex);
+    (*ssh_handle)->s_hostkey              = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_hostkey);
+    (*ssh_handle)->s_signature            = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_signature);
+    (*ssh_handle)->s_gex_p                = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_gex_p);
+    (*ssh_handle)->s_gex_g                = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->s_gex_g);
     for (i = 0; i < MAX_SSH_KEX_MESSAGES; ++i) {
-        (*ssh_handle)->kex_msgs[i].data   = malloc(sizeof(struct vector)); vector_init((*ssh_handle)->kex_msgs[i].data);
+        (*ssh_handle)->kex_msgs[i].data   = joy_malloc(sizeof(struct vector)); vector_init((*ssh_handle)->kex_msgs[i].data);
     }
 }
 
@@ -898,16 +899,16 @@ void ssh_print_json(const struct ssh *x1,
             zprintf(f, ",\"cookie\":");
             zprintf_raw_as_hex(f, cli->cookie, sizeof(cli->cookie));
         }
-        ptr = vector_string(cli->kex_algos); zprintf(f, ",\"kex_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(cli->s_host_key_algos); zprintf(f, ",\"s_host_key_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(cli->c_encryption_algos); zprintf(f, ",\"c_encryption_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(cli->s_encryption_algos); zprintf(f, ",\"s_encryption_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(cli->c_mac_algos); zprintf(f, ",\"c_mac_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(cli->s_mac_algos); zprintf(f, ",\"s_mac_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(cli->c_comp_algos); zprintf(f, ",\"c_comp_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(cli->s_comp_algos); zprintf(f, ",\"s_comp_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(cli->c_languages); zprintf(f, ",\"c_languages\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(cli->s_languages); zprintf(f, ",\"s_languages\":\"%s\"", ptr); free(ptr);
+        ptr = vector_string(cli->kex_algos); zprintf(f, ",\"kex_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(cli->s_host_key_algos); zprintf(f, ",\"s_host_key_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(cli->c_encryption_algos); zprintf(f, ",\"c_encryption_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(cli->s_encryption_algos); zprintf(f, ",\"s_encryption_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(cli->c_mac_algos); zprintf(f, ",\"c_mac_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(cli->s_mac_algos); zprintf(f, ",\"s_mac_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(cli->c_comp_algos); zprintf(f, ",\"c_comp_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(cli->s_comp_algos); zprintf(f, ",\"s_comp_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(cli->c_languages); zprintf(f, ",\"c_languages\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(cli->s_languages); zprintf(f, ",\"s_languages\":\"%s\"", ptr); joy_free(ptr);
         if (cli->kex_algo != NULL) {
         zprintf(f, ",\"kex_algo\":\"%s\"", cli->kex_algo);
         }
@@ -929,23 +930,23 @@ void ssh_print_json(const struct ssh *x1,
             zprintf(f, ",\"cookie\":");
             zprintf_raw_as_hex(f, srv->cookie, sizeof(srv->cookie));
         }
-        ptr = vector_string(srv->kex_algos); zprintf(f, ",\"kex_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(srv->s_host_key_algos); zprintf(f, ",\"s_host_key_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(srv->c_encryption_algos); zprintf(f, ",\"c_encryption_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(srv->s_encryption_algos); zprintf(f, ",\"s_encryption_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(srv->c_mac_algos); zprintf(f, ",\"c_mac_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(srv->s_mac_algos); zprintf(f, ",\"s_mac_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(srv->c_comp_algos); zprintf(f, ",\"c_comp_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(srv->s_comp_algos); zprintf(f, ",\"s_comp_algos\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(srv->c_languages); zprintf(f, ",\"c_languages\":\"%s\"", ptr); free(ptr);
-        ptr = vector_string(srv->s_languages); zprintf(f, ",\"s_languages\":\"%s\"", ptr); free(ptr);
+        ptr = vector_string(srv->kex_algos); zprintf(f, ",\"kex_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(srv->s_host_key_algos); zprintf(f, ",\"s_host_key_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(srv->c_encryption_algos); zprintf(f, ",\"c_encryption_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(srv->s_encryption_algos); zprintf(f, ",\"s_encryption_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(srv->c_mac_algos); zprintf(f, ",\"c_mac_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(srv->s_mac_algos); zprintf(f, ",\"s_mac_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(srv->c_comp_algos); zprintf(f, ",\"c_comp_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(srv->s_comp_algos); zprintf(f, ",\"s_comp_algos\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(srv->c_languages); zprintf(f, ",\"c_languages\":\"%s\"", ptr); joy_free(ptr);
+        ptr = vector_string(srv->s_languages); zprintf(f, ",\"s_languages\":\"%s\"", ptr); joy_free(ptr);
         if (srv->s_hostkey->len > 0) {
-        ptr = vector_string(srv->s_hostkey_type); zprintf(f, ",\"s_hostkey_type\":\"%s\"", ptr); free(ptr);
+        ptr = vector_string(srv->s_hostkey_type); zprintf(f, ",\"s_hostkey_type\":\"%s\"", ptr); joy_free(ptr);
         zprintf(f, ",\"s_hostkey\":");
         zprintf_raw_as_hex(f, (unsigned char*)srv->s_hostkey->bytes, srv->s_hostkey->len);
         }
         if (srv->s_signature->len > 0) {
-        ptr = vector_string(srv->s_signature_type); zprintf(f, ",\"s_signature_type\":\"%s\"", ptr); free(ptr);
+        ptr = vector_string(srv->s_signature_type); zprintf(f, ",\"s_signature_type\":\"%s\"", ptr); joy_free(ptr);
         zprintf(f, ",\"s_signature\":");
         zprintf_raw_as_hex(f, (unsigned char*)srv->s_signature->bytes, srv->s_signature->len);
         }
@@ -986,33 +987,33 @@ void ssh_delete(struct ssh **ssh_handle) {
     }
 
     if (ssh->kex_algo != NULL) {
-        free(ssh->kex_algo);
+        joy_free(ssh->kex_algo);
     }
-    vector_free(ssh->buffer);             free(ssh->buffer);
-    vector_free(ssh->kex_algos);          free(ssh->kex_algos);
-    vector_free(ssh->s_host_key_algos);   free(ssh->s_host_key_algos);
-    vector_free(ssh->c_encryption_algos); free(ssh->c_encryption_algos);
-    vector_free(ssh->s_encryption_algos); free(ssh->s_encryption_algos);
-    vector_free(ssh->c_mac_algos);        free(ssh->c_mac_algos);
-    vector_free(ssh->s_mac_algos);        free(ssh->s_mac_algos);
-    vector_free(ssh->c_comp_algos);       free(ssh->c_comp_algos);
-    vector_free(ssh->s_comp_algos);       free(ssh->s_comp_algos);
-    vector_free(ssh->c_languages);        free(ssh->c_languages);
-    vector_free(ssh->s_languages);        free(ssh->s_languages);
-    vector_free(ssh->s_hostkey_type);     free(ssh->s_hostkey_type);
-    vector_free(ssh->s_signature_type);   free(ssh->s_signature_type);
-    vector_free(ssh->c_kex);              free(ssh->c_kex);
-    vector_free(ssh->s_kex);              free(ssh->s_kex);
-    vector_free(ssh->s_hostkey);          free(ssh->s_hostkey);
-    vector_free(ssh->s_signature);        free(ssh->s_signature);
-    vector_free(ssh->s_gex_p);            free(ssh->s_gex_p);
-    vector_free(ssh->s_gex_g);            free(ssh->s_gex_g);
+    vector_free(ssh->buffer);             joy_free(ssh->buffer);
+    vector_free(ssh->kex_algos);          joy_free(ssh->kex_algos);
+    vector_free(ssh->s_host_key_algos);   joy_free(ssh->s_host_key_algos);
+    vector_free(ssh->c_encryption_algos); joy_free(ssh->c_encryption_algos);
+    vector_free(ssh->s_encryption_algos); joy_free(ssh->s_encryption_algos);
+    vector_free(ssh->c_mac_algos);        joy_free(ssh->c_mac_algos);
+    vector_free(ssh->s_mac_algos);        joy_free(ssh->s_mac_algos);
+    vector_free(ssh->c_comp_algos);       joy_free(ssh->c_comp_algos);
+    vector_free(ssh->s_comp_algos);       joy_free(ssh->s_comp_algos);
+    vector_free(ssh->c_languages);        joy_free(ssh->c_languages);
+    vector_free(ssh->s_languages);        joy_free(ssh->s_languages);
+    vector_free(ssh->s_hostkey_type);     joy_free(ssh->s_hostkey_type);
+    vector_free(ssh->s_signature_type);   joy_free(ssh->s_signature_type);
+    vector_free(ssh->c_kex);              joy_free(ssh->c_kex);
+    vector_free(ssh->s_kex);              joy_free(ssh->s_kex);
+    vector_free(ssh->s_hostkey);          joy_free(ssh->s_hostkey);
+    vector_free(ssh->s_signature);        joy_free(ssh->s_signature);
+    vector_free(ssh->s_gex_p);            joy_free(ssh->s_gex_p);
+    vector_free(ssh->s_gex_g);            joy_free(ssh->s_gex_g);
     for (i = 0; i < MAX_SSH_KEX_MESSAGES; ++i) {
-        vector_free(ssh->kex_msgs[i].data); free(ssh->kex_msgs[i].data);
+        vector_free(ssh->kex_msgs[i].data); joy_free(ssh->kex_msgs[i].data);
     }
 
     /* Free the memory and set to NULL */
-    free(ssh);
+    joy_free(ssh);
     *ssh_handle = NULL;
 }
 

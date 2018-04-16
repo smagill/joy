@@ -49,6 +49,7 @@
 #include "utils.h"    /* for enum role   */
 #include "ppi.h"     
 #include "err.h"
+#include "joy_mem.h"
 
 /* helper functions defined below */
 
@@ -70,7 +71,7 @@ void ppi_init (struct ppi **ppi_handle) {
         ppi_delete(ppi_handle);
     }
 
-    *ppi_handle = malloc(sizeof(struct ppi));
+    *ppi_handle = joy_malloc(sizeof(struct ppi));
     if (*ppi_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -164,7 +165,7 @@ void ppi_delete (struct ppi **ppi_handle) {
     }
 
     /* Free the memory and set to NULL */
-    free(ppi);
+    joy_free(ppi);
     *ppi_handle = NULL;
 }
 

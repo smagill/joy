@@ -56,6 +56,7 @@
 #include "utils.h"      /* for enum role */
 #include "p2f.h"        /* for zprintf_ ...        */
 #include "err.h"        /* for logging             */
+#include "joy_mem.h"
 
 /**
  * \brief A vector structure contains a pointer to a byte array with a given length.
@@ -81,10 +82,10 @@ static void vector_delete(struct vector **s_handle) {
         return;
     }
     if (vector->bytes != NULL) {
-        free(vector->bytes);
+        joy_free(vector->bytes);
     }
 
-    free(vector);
+    joy_free(vector);
     *s_handle = NULL;
 }
 
@@ -103,7 +104,7 @@ static void vector_init(struct vector **s_handle) {
         vector_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct vector));
+    *s_handle = joy_calloc(1, sizeof(struct vector));
     if (*s_handle == NULL) {
         /* Allocation failed */
         joy_log_err("malloc failed");
@@ -130,14 +131,14 @@ static void vector_set(struct vector *vector,
                        unsigned int len) {
     unsigned char *tmpptr = NULL;
 
-    tmpptr = malloc(len);
+    tmpptr =  joy_malloc(len);
     if (tmpptr == NULL) {
         joy_log_err("malloc failed");
         return;
     }
     memcpy(tmpptr, data, len);
     if (vector->bytes != NULL) {
-        free(vector->bytes);
+        joy_free(vector->bytes);
     }
     vector->bytes = tmpptr;
     vector->len = len;
@@ -161,7 +162,7 @@ static void vector_append(struct vector *vector,
                           unsigned int len) {
     unsigned char *tmpptr = NULL;
 
-    tmpptr = malloc(vector->len + len);
+    tmpptr =  joy_malloc(vector->len + len);
     if (tmpptr == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -169,7 +170,7 @@ static void vector_append(struct vector *vector,
     memcpy(tmpptr, vector->bytes, vector->len);
     memcpy(tmpptr + vector->len, data, len);
     if (vector->bytes != NULL) {
-        free(vector->bytes);
+        joy_free(vector->bytes);
     }
     vector->bytes = tmpptr;
     vector->len += len;
@@ -2240,7 +2241,7 @@ static void ike_attribute_delete(struct ike_attribute **s_handle) {
     }
     vector_delete(&s->data);
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -2259,7 +2260,7 @@ static void ike_attribute_init(struct ike_attribute **s_handle) {
         ike_attribute_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_attribute));
+    *s_handle = joy_calloc(1, sizeof(struct ike_attribute));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -2420,7 +2421,7 @@ static void ike_transform_delete(struct ike_transform **s_handle) {
         ike_attribute_delete(&s->attributes[i]);
     }
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -2439,7 +2440,7 @@ static void ike_transform_init(struct ike_transform **s_handle) {
         ike_transform_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_transform));
+    *s_handle = joy_calloc(1, sizeof(struct ike_transform));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -2666,7 +2667,7 @@ static void ike_proposal_delete(struct ike_proposal **s_handle) {
         ike_transform_delete(&s->transforms[i]);
     }
     
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -2685,7 +2686,7 @@ static void ike_proposal_init(struct ike_proposal **s_handle) {
         ike_proposal_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_proposal));
+    *s_handle = joy_calloc(1, sizeof(struct ike_proposal));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -2954,7 +2955,7 @@ static void ike_sa_delete(struct ike_sa **s_handle) {
         ike_proposal_delete(&s->proposals[i]);
     }
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -2973,7 +2974,7 @@ static void ike_sa_init(struct ike_sa **s_handle) {
         ike_sa_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_sa));
+    *s_handle = joy_calloc(1, sizeof(struct ike_sa));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -3162,7 +3163,7 @@ static void ike_ke_delete(struct ike_ke **s_handle) {
     }
     vector_delete(&s->data);
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -3181,7 +3182,7 @@ static void ike_ke_init(struct ike_ke **s_handle) {
         ike_ke_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_ke));
+    *s_handle = joy_calloc(1, sizeof(struct ike_ke));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -3312,7 +3313,7 @@ static void ike_id_delete(struct ike_id **s_handle) {
     }
     vector_delete(&s->data);
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -3331,7 +3332,7 @@ static void ike_id_init(struct ike_id **s_handle) {
         ike_id_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_id));
+    *s_handle = joy_calloc(1, sizeof(struct ike_id));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -3412,7 +3413,7 @@ static void ike_cert_delete(struct ike_cert **s_handle) {
     }
     vector_delete(&s->data);
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -3431,7 +3432,7 @@ static void ike_cert_init(struct ike_cert **s_handle) {
         ike_cert_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_cert));
+    *s_handle = joy_calloc(1, sizeof(struct ike_cert));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -3511,7 +3512,7 @@ static void ike_cr_delete(struct ike_cr **s_handle) {
     }
     vector_delete(&s->data);
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -3530,7 +3531,7 @@ static void ike_cr_init(struct ike_cr **s_handle) {
         ike_cr_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_cr));
+    *s_handle = joy_calloc(1, sizeof(struct ike_cr));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -3610,7 +3611,7 @@ static void ike_auth_delete(struct ike_auth **s_handle) {
     }
     vector_delete(&s->data);
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -3629,7 +3630,7 @@ static void ike_auth_init(struct ike_auth **s_handle) {
         ike_auth_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_auth));
+    *s_handle = joy_calloc(1, sizeof(struct ike_auth));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -3696,7 +3697,7 @@ static void ike_hash_delete(struct ike_hash **s_handle) {
     }
     vector_delete(&s->data);
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -3715,7 +3716,7 @@ static void ike_hash_init(struct ike_hash **s_handle) {
         ike_hash_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_hash));
+    *s_handle = joy_calloc(1, sizeof(struct ike_hash));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -3887,7 +3888,7 @@ static void ike_notify_delete(struct ike_notify **s_handle) {
     vector_delete(&s->spi);
     vector_delete(&s->data);
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -3906,7 +3907,7 @@ static void ike_notify_init(struct ike_notify **s_handle) {
         ike_notify_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_notify));
+    *s_handle = joy_calloc(1, sizeof(struct ike_notify));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -4024,7 +4025,7 @@ static void ike_nonce_delete(struct ike_nonce **s_handle) {
     }
     vector_delete(&s->data);
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -4043,7 +4044,7 @@ static void ike_nonce_init(struct ike_nonce **s_handle) {
         ike_nonce_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_nonce));
+    *s_handle = joy_calloc(1, sizeof(struct ike_nonce));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -4130,7 +4131,7 @@ static void ike_vendor_id_delete(struct ike_vendor_id **s_handle) {
     }
     vector_delete(&s->data);
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -4149,7 +4150,7 @@ static void ike_vendor_id_init(struct ike_vendor_id **s_handle) {
         ike_vendor_id_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_vendor_id));
+    *s_handle = joy_calloc(1, sizeof(struct ike_vendor_id));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -4317,8 +4318,8 @@ static void ike_payload_delete(struct ike_payload **s_handle) {
             break;
     }
 
-    free(s->body);
-    free(s);
+    joy_free(s->body);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -4337,12 +4338,12 @@ static void ike_payload_init(struct ike_payload **s_handle) {
         ike_payload_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_payload));
+    *s_handle = joy_calloc(1, sizeof(struct ike_payload));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
     }
-    (*s_handle)->body = calloc(1, sizeof(union ike_payload_body));
+    (*s_handle)->body = joy_calloc(1, sizeof(union ike_payload_body));
     if ((*s_handle)->body == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -4513,7 +4514,7 @@ static void ike_header_delete(struct ike_header **s_handle) {
         return;
     }
 
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -4532,7 +4533,7 @@ static void ike_header_init(struct ike_header **s_handle) {
         ike_header_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_header));
+    *s_handle = joy_calloc(1, sizeof(struct ike_header));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -4624,7 +4625,7 @@ static void ike_message_delete(struct ike_message **s_handle) {
         ike_payload_delete(&s->payloads[i]);
     }
     
-    free(s);
+    joy_free(s);
     *s_handle = NULL;
 }
 
@@ -4643,7 +4644,7 @@ static void ike_message_init(struct ike_message **s_handle) {
         ike_message_delete(s_handle);
     }
 
-    *s_handle = calloc(1, sizeof(struct ike_message));
+    *s_handle = joy_calloc(1, sizeof(struct ike_message));
     if (*s_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -4955,7 +4956,7 @@ void ike_init(struct ike **ike_handle) {
         ike_delete(ike_handle);
     }
 
-    *ike_handle = calloc(1, sizeof(struct ike));
+    *ike_handle = joy_calloc(1, sizeof(struct ike));
     if (*ike_handle == NULL) {
         joy_log_err("malloc failed");
         return;
@@ -5118,7 +5119,7 @@ void ike_delete(struct ike **ike_handle) {
     }
 
     vector_delete(&ike->buffer);
-    free(ike);
+    joy_free(ike);
     *ike_handle = NULL;
 }
 
