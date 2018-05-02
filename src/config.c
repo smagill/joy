@@ -526,6 +526,9 @@ void config_print (FILE *f, const struct configuration *c) {
     fprintf(f, "anon = %s\n", val(c->anon_addrs_file));
     fprintf(f, "useranon = %s\n", val(c->anon_http_file));
     fprintf(f, "bpf = %s\n", val(c->bpf_filter_exp));
+#ifdef JOY_DEBUG_MEM
+    fprintf(f, "debug_mem = enabled\n");
+#endif
 
     config_print_all_features_bool(feature_list);
 
@@ -574,6 +577,9 @@ void config_print_json (zfile f, const struct configuration *c) {
     zprintf(f, "\"useranon\":\"%s\",", val(c->anon_http_file));
     zprintf(f, "\"bpf\":\"%s\",", val(c->bpf_filter_exp));
     zprintf(f, "\"verbosity\":%u,", c->verbosity);
+#ifdef JOY_DEBUG_MEM
+    zprintf(f, "\"debug_mem\":\"enabled\"");
+#endif
 
     config_print_json_all_features_bool(feature_list);
 
