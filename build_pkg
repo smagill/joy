@@ -6,7 +6,7 @@
 usage() { 
     echo "usage:"
     echo ""
-    echo "   $0 [ [ -h ] | [ -t deb|osxpkg|rpm ] [ -r git-reference ] [ -R release ] [ -s ssl-path ] [ -z compression-type]"
+    echo "   $0 [ [ -h ] | [ -t deb|osxpkg|rpm ] [ -m ] [ -r git-reference ] [ -R release ] [ -s ssl-path ] [ -z compression-type]"
     echo ""
     echo "where the options are as follows"
     echo ""
@@ -14,6 +14,9 @@ usage() {
     echo ""
     echo "   The -t rpm flag builds a RPM.  The -t deb flag builds a deb."
     echo "   The -t osxpkg flag builds an OS X pkg."
+    echo ""
+    echo "   The -m flag enables CFLAGS=\"-DJOY_DEBUG_MEM\" to build the optional memory"
+    echo "   debug routines."
     echo ""
     echo "   The -r git-reference pulls from the specified git-reference instead of master."
     echo ""
@@ -51,6 +54,7 @@ RPM_PKGS="gcc git libcurl libcurl-devel libpcap libpcap-devel make openssl \
     openssl-devel python python2-pip ruby rubygems"
 RPM_REQS="-d libcurl -d libpcap -d logrotate -d openssl -d openssl-libs"
 ARCH=`uname -m`
+CFLAGS=""
 
 echo
 echo BUILD_PKGS
@@ -59,7 +63,7 @@ echo
 
 # check command line arguments, ovveride defaults as appropriate
 #
-while getopts "ht:s:r:R:z:" arg; do
+while getopts "hmt:s:r:R:z:" arg; do
     case $arg in
     h)
         usage
@@ -84,6 +88,10 @@ while getopts "ht:s:r:R:z:" arg; do
     R)
         echo "-R was triggered with option ${OPTARG}" 
         RELEASE=${OPTARG}
+        ;;
+    m)
+        echo "-m was triggered"
+        CFLAGS="-DJOY_DEBUG_MEM"
         ;;
     \?)
         echo "error: invalid option -${OPTARG}" 
@@ -333,7 +341,7 @@ if [ "$?" != 0 ]; then
     exit 1
 fi
 echo "$FULL_VERSION" > VERSION
-make
+make CFLAGS=${CFLAGS}
 if [ "$?" != 0 ]; then
     echo Failed to run make
     exit 1
